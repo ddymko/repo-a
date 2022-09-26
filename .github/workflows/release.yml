@@ -11,22 +11,28 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: pandoc/latex    # "ubuntu" is a more generic container
-                               # using "pandoc/latex" because of dependencies
-                               # used in the specific "build.sh"
     steps:
       - uses: actions/checkout@v2
-      - name: creates output
-        run:  sh ./build.sh # some command from your repository that creates
-                            # output to "source-directory" ("output" in the example)
+      - name: GitHub Tag Name example
+        run: |
+         echo "Tag name from GITHUB_REF_NAME: $GITHUB_REF_NAME"
+         echo "Tag name from github.ref_name: ${{  github.ref_name }}"
+
+      - uses: GuillaumeFalourd/create-other-repo-branch-action@v1.2
+        with:
+          repository_owner: ddymko
+          repository_name: repo-b
+          new_branch_name: ${{  github.ref_name }}
+          access_token: ${{ secrets.API_TOKEN_GITHUB}}
+
       - name: Push repo-a to repo-b
         uses: cpina/github-action-push-to-another-repository@main
         env:
-          SSH_DEPLOY_KEY: ${{ secrets.SSH_DEPLOY_KEY }}
           API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
         with:
           source-directory: 'data' # directory we want to push data from
           destination-github-username: 'ddymko' 
           destination-repository-name: 'repo-b'
           user-email: carles3@pina.cat
-          target-branch: ${{ github.event.release.tag_name }}
+          target-branch: ${{  github.ref_name }}
+          commit-message: ${{  github.ref_name }}
