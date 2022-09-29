@@ -16,30 +16,27 @@ jobs:
         run: |
           echo "Tag name from GITHUB_REF_NAME: $GITHUB_REF_NAME"
           echo "Tag name from github.ref_name: ${{  github.ref_name }}"
-          # echo "::set-output name proper_version::$(echo "${{  github.ref_name }}" | sed -r "s/-.*//")"
-
-          echo "PROPER_VERSION=${{  github.ref_name }}" | sed -r "s/-.*//" >> $GITHUB_ENV
-
-          echo ${{ env.PROPER_VERSION }}
-
-      #we will want to use @v1.2 because it has smarter error handling if a branch exists?    
-      # - uses: GuillaumeFalourd/create-other-repo-branch-action@v1
-      #   with:
-      #     repository_owner: ddymko
-      #     repository_name: repo-b
-      #     new_branch_name: ${{ env.PROPER_VERSION }}
-      #     access_token: ${{ secrets.API_TOKEN_GITHUB }}
+          ProperVersion=$(echo "${{  github.ref_name }}" | sed -r "s/-.*//")
+          echo "$ProperVersion"
           
+      # we will want to use @v1.2 because it has smarter error handling if a branch exists?    
+      - uses: GuillaumeFalourd/create-other-repo-branch-action@v1
+        with:
+          repository_owner: ddymko
+          repository_name: repo-b
+          new_branch_name: $(echo "${{  github.ref_name }}" | sed -r "s/-.*//")
+          access_token: ${{ secrets.API_TOKEN_GITHUB }}
       
-      # # there is an option to force push
-      # - name: Push repo-a to repo-b
-      #   uses: cpina/github-action-push-to-another-repository@main
-      #   env:
-      #     API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
-      #   with:
-      #     source-directory: 'data' 
-      #     destination-github-username: 'ddymko'
-      #     destination-repository-name: 'repo-b'
-      #     user-email: ddymko@datawire.io
-      #     target-branch: $PROPER_VERSION
-      #     commit-message: ${{  github.ref_name }}
+      # there is an option to force push
+      - name: Push repo-a to repo-b
+        uses: cpina/github-action-push-to-another-repository@main
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+        with:
+          source-directory: 'data' 
+          destination-github-username: 'ddymko'
+          destination-repository-name: 'repo-b'
+          user-email: ddymko@datawire.io
+          target-branch: $(echo "${{  github.ref_name }}" | sed -r "s/-.*//")
+          commit-message: ${{  github.ref_name }}
+          
