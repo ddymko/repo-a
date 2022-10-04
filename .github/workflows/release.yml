@@ -17,6 +17,7 @@ jobs:
           # For tags that have `-rc.N` we will strip this out in order create a "clean" branch `rel/vX.Y.Z`  
           echo "::set-output name=proper::$(echo "${{  github.ref_name }}" | sed -r "s/-.*//")"
         id: proper
+        
   build:
     needs: [get-version]
     runs-on: ubuntu-latest
