@@ -11,24 +11,18 @@ jobs:
     outputs:
       VERSION: ${{ steps.proper.outputs.proper }}
     steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/checkout@v3.1.0
       - name: GitHub Tag Name example
         run: |
           # For tags that have `-rc.N` we will strip this out in order create a "clean" branch `rel/vX.Y.Z`  
           echo "::set-output name=proper::$(echo "${{  github.ref_name }}" | sed -r "s/-.*//")"
         id: proper
-
+        
   build:
     needs: [get-version]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/checkout@v3.1.0
 
       - name: log
         shell: bash
@@ -36,10 +30,10 @@ jobs:
       - name: Create rel branch
         uses: GuillaumeFalourd/create-other-repo-branch-action@v1.3
         with:
-          repository_owner: ddymko
+          repository_owner: "ddymko"
           ignore_branch_exists: true
-          repository_name: repo-b
-          new_branch_name: ${{ needs.get-version.outputs.VERSION }}
+          repository_name: "repo-b"
+          new_branch_name: "rel/${{ needs.get-version.outputs.VERSION }}"
           access_token: ${{ secrets.API_TOKEN_GITHUB }}
       
       ## there is an option to force push
@@ -48,10 +42,10 @@ jobs:
         env:
           API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
         with:
-          source-directory: 'data' 
-          destination-github-username: 'ddymko'
-          destination-repository-name: 'repo-b'
+          source-directory: "data"
+          destination-github-username: "ddymko"
+          destination-repository-name: "repo-b"
           user-email: ddymko@datawire.io
-          target-branch: ${{ needs.get-version.outputs.VERSION }}
+          target-branch: "rel/${{ needs.get-version.outputs.VERSION }}"
           commit-message: ${{  github.ref_name }}
           
