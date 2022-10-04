@@ -6,8 +6,10 @@ on:
       - "v*" # Push events to matching v*, i.e. v1.0, v20.15.10
 
 jobs:
-  build:
+  get-version:
     runs-on: ubuntu-latest
+    outputs:
+      VERSION: ${{ steps.proper.outputs.proper }}
     steps:
       - uses: actions/checkout@v2
       - name: GitHub Tag Name example
@@ -15,21 +17,28 @@ jobs:
           # For tags that have `-rc.N` we will strip this out in order create a "clean" branch `rel/vX.Y.Z`  
           echo "::set-output name=proper::$(echo "${{  github.ref_name }}" | sed -r "s/-.*//")"
         id: proper
+  build:
+    needs: [get-version]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
 
-      # We are on a older version. This is because as of v1.2 it facails if the branch already exists
-      # In our specific case we will want to reuse the same branch from RCs -> GA   
+      - name: log
+        shell: bash
+        run: echo ${{ needs.get-version.outputs.PROPER }}
       - name: Create rel branch
         uses: GuillaumeFalourd/create-other-repo-branch-action@v1.3
         with:
           repository_owner: ddymko
           ignore_branch_exists: true
           repository_name: repo-b
-          new_branch_name: ${{ steps.proper.outputs.proper }}
+          # new_branch_name: ${{ steps.proper.outputs.proper }}
+          new_branch_name: ${{ needs.get-version.outputs.VERSION }}
           access_token: ${{ secrets.API_TOKEN_GITHUB }}
       
       ## there is an option to force push
       - name: Push repo-a to repo-b
-        uses: cpina/github-action-push-to-another-repository@main
+        uses: cpina/github-action-push-to-another-repository@v1.5.1
         env:
           API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
         with:
@@ -37,6 +46,6 @@ jobs:
           destination-github-username: 'ddymko'
           destination-repository-name: 'repo-b'
           user-email: ddymko@datawire.io
-          target-branch: ${{ steps.proper.outputs.proper }}
+          new_branch_name: ${{ needs.get-version.outputs.VERSION }}
           commit-message: ${{  github.ref_name }}
           
