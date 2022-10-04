@@ -32,7 +32,6 @@ jobs:
           repository_owner: ddymko
           ignore_branch_exists: true
           repository_name: repo-b
-          # new_branch_name: ${{ steps.proper.outputs.proper }}
           new_branch_name: ${{ needs.get-version.outputs.VERSION }}
           access_token: ${{ secrets.API_TOKEN_GITHUB }}
       
@@ -46,6 +45,6 @@ jobs:
           destination-github-username: 'ddymko'
           destination-repository-name: 'repo-b'
           user-email: ddymko@datawire.io
-          new_branch_name: ${{ needs.get-version.outputs.VERSION }}
+          target-branch: ${{ needs.get-version.outputs.VERSION }}
           commit-message: ${{  github.ref_name }}
           
