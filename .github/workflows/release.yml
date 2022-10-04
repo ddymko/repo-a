@@ -12,18 +12,22 @@ jobs:
       - uses: actions/checkout@v2
       - name: GitHub Tag Name example
         run: |
+          # For tags that have `-rc.N` we will strip this out in order create a "clean" branch `rel/vX.Y.Z`  
           echo "::set-output name=proper::$(echo "${{  github.ref_name }}" | sed -r "s/-.*//")"
         id: proper
 
-      # we will want to use @v1.2 because it has smarter error handling if a branch exists?    
-      - uses: GuillaumeFalourd/create-other-repo-branch-action@v1
+      # We are on a older version. This is because as of v1.2 it facails if the branch already exists
+      # In our specific case we will want to reuse the same branch from RCs -> GA   
+      - name: Create rel branch
+        uses: GuillaumeFalourd/create-other-repo-branch-action@v1.3
         with:
           repository_owner: ddymko
+          ignore_branch_exists: true
           repository_name: repo-b
           new_branch_name: ${{ steps.proper.outputs.proper }}
           access_token: ${{ secrets.API_TOKEN_GITHUB }}
       
-      # there is an option to force push
+      ## there is an option to force push
       - name: Push repo-a to repo-b
         uses: cpina/github-action-push-to-another-repository@main
         env:
