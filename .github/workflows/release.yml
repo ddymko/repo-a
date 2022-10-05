@@ -6,7 +6,7 @@ on:
       - "v*.*.*" # Push events to matching v*, i.e. v1.0, v20.15.10
 
 jobs:
-  get-version:
+  get-tagged-version:
     runs-on: ubuntu-latest
     outputs:
       VERSION: ${{ steps.proper.outputs.proper }}
@@ -21,7 +21,7 @@ jobs:
         id: proper
         
   build:
-    needs: [get-version]
+    needs: [get-tagged-version]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3.1.0
@@ -31,24 +31,23 @@ jobs:
         shell: bash
         run: echo ${{ needs.get-version.outputs.PROPER }}
       - name: Create rel branch
-        uses: GuillaumeFalourd/create-other-repo-branch-action@03995700c7e2bf16f6f50a989c5f55fce121c08a
+        uses: ddymko/create-other-repo-branch-action@ssh-keys-deploy
         with:
           repository_owner: "ddymko"
           ignore_branch_exists: true
           repository_name: "repo-b"
-          new_branch_name: "rel/${{ needs.get-version.outputs.VERSION }}"
-          access_token: ${{ secrets.API_TOKEN_GITHUB }}
-      
+          new_branch_name: "rel/${{ needs.get-tagged-version.outputs.VERSION }}"
+          ssh_deploy_key: ${{ secrets.SSH_DEPLOY_KEY }}
       ## there is an option to force push
       - name: Push repo-a to repo-b
         uses: cpina/github-action-push-to-another-repository@74596b72fae72d9b7b79e1b2992863c0f595c801
         env:
-          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+          SSH_DEPLOY_KEY: ${{ secrets.SSH_DEPLOY_KEY }}
         with:
           source-directory: "data"
           destination-github-username: "ddymko"
           destination-repository-name: "repo-b"
           user-email: ddymko@datawire.io
-          target-branch: "rel/${{ needs.get-version.outputs.VERSION }}"
+          target-branch: "rel/${{ needs.get-tagged-version.outputs.VERSION }}"
           commit-message: ${{  github.ref_name }}
           
