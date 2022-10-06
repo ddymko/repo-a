@@ -31,7 +31,7 @@ jobs:
         shell: bash
         run: echo ${{ needs.get-version.outputs.PROPER }}
       - name: Create rel branch
-        uses: ddymko/create-other-repo-branch-action@ssh-keys-deploy
+        uses: GuillaumeFalourd/create-other-repo-branch-action@3f9f50c322fc03632d0909533ff350a210bc4a19
         with:
           repository_owner: "ddymko"
           ignore_branch_exists: true
